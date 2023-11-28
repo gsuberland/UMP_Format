@@ -184,11 +184,17 @@ Present at the start of all known UMP response payloads.
 
 The payload is protobufs. So far I've been decoding this manually with https://protobuf-decoder.netlify.app/
 
-The first value is a varint and is always zero. The second value is the video ID as a string. The third value is a small number (in the order of 100-400) and the fourth number is a large number in the order of 1e+15. This *might* be a packed float? Needs investigating.
+- Field 1 is a varint and is always zero.
+- Field 2 is the video ID as a string
+- Field 3 is a varint which matches the `itag` URL parameter.
+- Field 4 is varint that matches the `lmt` URL parameter, which seems to be a microsecond timestamp related to the last modified time of the stream (likely the time at which encoding completed for a given video stream)
+- Field 6 is a varint that is probably the start of the data range
+- Field 13 is a protobuf message with two fields:
+  - Field 1 is the `itag`
+  - Field 2 is the `lmt` for the itag.
+- Field 14 is the content length.
 
-After that is a variable number of varints, followed by a protobuf block containing two varints that generally match the third and fourth values described above.
-
-The last value is an unsigned varint, which probably represents the size of the media chunk being sent. If the payload does not end with a partial part, this number has always been observed to match the size of the data in the `MEDIA` part, not including the null byte prefix. When there is a partial part, the number tends to be a fair bit bigger than the total data size, so further investigation is needed.
+Field 14 probably represents the size of the media chunk being sent. If the payload does not end with a partial part, this number has always been observed to match the size of the data in the `MEDIA` part, not including the null byte prefix. When there is a partial part, the number tends to be a fair bit bigger, possibly representing the size of the entire video or chapter. When the video is a livestream, this value is missing, since YouTube has no idea when the stream will end.
 
 ### Part 21: MEDIA
 
@@ -357,4 +363,16 @@ Unknown purpose and format.
 ### Part 65: PREWARM_CONNECTION
 
 Unknown purpose and format.
+
+# Meta
+
+## License
+
+All information published in this document is hereby released in the public domain.
+
+## Special Thanks
+
+Thanks to the folks from #invidious on libera.chat for their invaluable assistance and insight.
+
+Additional thanks to the maintainers of Invidious, Piped, youtube-dl, yt-dlp, uBlock Origin, and Sponsorblock for all their hard work in making YouTube a far more tolerable platform to interact with.
 
